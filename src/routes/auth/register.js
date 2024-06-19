@@ -1,32 +1,31 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../../schemas/User");
-const validator = require("validator");
+const bcrypt = require("bcryptjs");
+
+const AuthenticationValidator = require("../../validation/AuthenticationValidator");
 
 router.post("/register", async (req, res) => {
-  // Validation
-  const credentials = req.body;
-  if (!credentials.username || !credentials.email || !credentials.password) {
-    return res.status(403).json({
-      message: "please fill out all forms",
-    });
-  }
+  try {
+    // Validation
+    const credentials = req.body;
+    AuthenticationValidator.checkCredentials(credentials, res);
+    AuthenticationValidator.checkEmailExists(credentials.email, res);
 
-  if (!validator.isLength(credentials.username, { min: 4 })) {
-    return res.status(403).json({
-      message: "the name must be more than four characters long",
+    // Authentication Logic
+    const hashedPassword = await bcrypt.hash(credentials.password, 10);
+    const user = new User({
+      username: credentials.username,
+      email: credentials.email,
+      password: hashedPassword,
     });
-  }
-
-  if (!validator.isLength(credentials.password, { min: 4 })) {
-    return res.status(403).json({
-      message: "password must be more than four characters long",
+    await user.save();
+    res.status(201).json({
+      message: "User registered successfully",
     });
-  }
-
-  if (!validator.isEmail(credentials.email)) {
-    return res.status(403).json({
-      message: "invalid e-mail",
+  } catch (error) {
+    return res.status(404).json({
+      message: "something went wrong",
     });
   }
 });
