@@ -40,6 +40,20 @@ class AuthenticationValidator {
       });
     }
   }
+
+  static async checkLogin(credentials, res) {
+    if (!credentials.username || !credentials.password) {
+      return res.status(403).json({
+        message: "please fill out all forms",
+      });
+    }
+
+    if (!validator.isLength(credentials.username, { min: 4 })) {
+      return res.status(403).json({
+        message: "the name must be more than four characters long",
+      });
+    }
+  }
 }
 
 module.exports = AuthenticationValidator;
