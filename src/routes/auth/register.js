@@ -9,8 +9,26 @@ router.post("/register", async (req, res) => {
   try {
     // Validation
     const credentials = req.body;
-    AuthenticationValidator.checkCredentials(credentials, res);
-    AuthenticationValidator.checkEmailExists(credentials.email, res);
+    console.log(credentials);
+
+    const credentialsResult = await AuthenticationValidator.checkCredentials(
+      credentials
+    );
+    const sameUser = await AuthenticationValidator.checkEmailExists(
+      credentials.email
+    );
+
+    if (credentialsResult.status === "error") {
+      return res.status(404).send({
+        message: credentialsResult.message,
+      });
+    }
+
+    if (sameUser.status === "error") {
+      return res.status(404).send({
+        message: sameUser.message,
+      });
+    }
 
     // Authentication Logic
     const hashedPassword = await bcrypt.hash(credentials.password, 10);
@@ -19,8 +37,14 @@ router.post("/register", async (req, res) => {
       email: credentials.email,
       password: hashedPassword,
     });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "something went wrong",
+      });
+    }
     await user.save();
-    res.status(201).json({
+    return res.status(201).json({
       message: "User registered successfully",
     });
   } catch (error) {

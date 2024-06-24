@@ -9,8 +9,14 @@ const AuthenticationValidator = require("../../validation/AuthenticationValidato
 router.get("/login", async (req, res) => {
   try {
     // Validation
-    const credentials = req.body;
-    AuthenticationValidator.checkLogin(credentials, res);
+    const credentials = req.query;
+    const result = await AuthenticationValidator.checkLogin(credentials, res);
+
+    if (result.status === "error") {
+      return res.status(404).send({
+        message: result.message,
+      });
+    }
 
     // Login logic
     const user = await User.findOne({
@@ -45,7 +51,9 @@ router.get("/login", async (req, res) => {
         expiresIn: "1d",
       }
     );
-
+    
+    res.cookie('token', 'John Doe');
+    
     res.status(200).json({
       token,
     });
