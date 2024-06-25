@@ -6,6 +6,7 @@ const port = process.env.PORT;
 const registerRoute = require("./routes/auth/register");
 const loginRoute = require("./routes/auth/login");
 const createBoardRouter = require('./routes/board/create');
+const getAllBoard = require('./routes/board/getAll');
 const cookieParser = require('cookie-parser');
 const verifyToken = require('./middlewares/Auth');
 
@@ -24,6 +25,7 @@ app.use("/auth", registerRoute);
 app.use("/auth", loginRoute);
 
 app.use('/board', verifyToken, createBoardRouter);
+app.use('/board', verifyToken, getAllBoard);
 
 app.listen(port, () => {
   console.log("server is running on port:", port);

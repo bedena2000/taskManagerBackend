@@ -1,30 +1,30 @@
+
 const express = require('express');
 const router = express.Router();
 const verifyToken = require('../../middlewares/Auth.js');
 const Board = require('../../schemas/Board');
+const {all} = require("express/lib/application");
 
-router.post('/create', async (req, res) => {
+router.get('/all', async (req, res) => {
     
     const userId = req.userId;
-    const { title } = req.body;
     
     if(userId) {    
         
-        if(title.length === 0) {
-            return res.status(403).send({
-                message: 'board name cannot be empty'
-            })
-        }
-        
-        const newBoard = new Board({
-            title: title,
-            user_id: userId
+        const result = await Board.findAll({
+            where: {
+                user_id: userId
+            }
         });
         
-        await newBoard.save();
+        if(!result) {
+            return res.status(403).send({
+                message: 'nothing has been found'
+            });
+        }
         
         return res.status(200).send({
-            message: 'new board has been created'
+            data: result
         });
         
         
